@@ -1,4 +1,5 @@
 import os
+import pickle
 import requests
 from tkinter import *
 from tkinter.ttk import *
@@ -58,19 +59,19 @@ class Window(Frame):
         self.show_team2_rb = Radiobutton(self.controls_lfrm, text="Dire", variable=self.show_rb_var, value="team2")
         self.show_hero_rb = Radiobutton(self.controls_lfrm, text="Hero", variable=self.show_rb_var, value="hero")
         self.show_stats_btn = Button(self.controls_lfrm, text="Show", command=self.show_stats)
-        self.reset_teams_btn = Button(self.controls_lfrm, text="Reset", command=self.reset_teams)
-        self.wipe_stats_btn = Button(self.controls_lfrm, text="Wipe", command=self.wipe_stats)
+        self.reset_teams_btn = Button(self.controls_lfrm, text="Clear", command=self.reset_teams)
+        self.clear_stats_btn = Button(self.controls_lfrm, text="Wipe", command=self.clear_stats)
         self.init_controls()
 
     def init_hero_list(self):
-        if not os.path.exists("heroes"):
-            os.makedirs("heroes")
+        if os.path.isfile("heroes.dat"):
+            with open("heroes.dat", "rb") as f:
+                self.heroes = pickle.load(f)
+        else:
+            self.init_heroes()
 
-        with open("hero_list.txt", 'r') as f:
-            for idx, line in enumerate(f.readlines()):
-                hero_stat = line.strip().split(sep=', ')
-                self.heroes[hero_stat[0]] = Hero(hero_stat[0], hero_stat[1])
-                self.hero_lst.append(hero_stat[0])
+        for name in self.heroes.keys():
+            self.hero_lst.append(name)
 
         self.hero_lst.config(yscrollcommand=self.hero_scl.set)
         self.hero_scl.config(command=self.hero_lst.yview)
@@ -120,7 +121,7 @@ class Window(Frame):
         self.show_hero_rb.grid(row=0, column=2)
         self.show_stats_btn.grid(row=1, column=0)
         self.reset_teams_btn.grid(row=1, column=1)
-        self.wipe_stats_btn.grid(row=1, column=2)
+        self.clear_stats_btn.grid(row=1, column=2)
 
         self.show_team1_rb.invoke()
 
@@ -130,28 +131,28 @@ class Window(Frame):
         self.team1_lst.delete(0, END)
         self.team2_lst.delete(0, END)
 
-    def wipe_stats(self):
-        for file in [f for f in os.listdir("heroes") if f.endswith(".txt")]:
-            os.remove(f"heroes/{file}")
+    def clear_stats(self):
+        for hero in self.heroes.values():
+            hero.stats = dict()
 
         for hero_name in self.team1.heroes + self.team2.heroes:
             self.heroes[hero_name].fetch_stats()
 
         self.stats_lst.delete(0, END)
 
-    # currently unused
-    def update_hero_list(self):
+    def init_heroes(self):
         page = requests.get("https://www.dotabuff.com/heroes", headers={"user-agent": "Mozilla/5.0"})
-        heroes_file = open("hero_list.txt", 'w')
-
-        for hero_stat in re.findall(r'<a href="/heroes/(.+?)">.+?<div class="name">(.+?)</div>', re.search(
+        for hero_info in re.findall(r'<a href="/heroes/(.+?)">.+?<div class="name">(.+?)</div>', re.search(
                 '<div class="hero-grid">[\s\S]+</div></footer></section>', page.text).group()):
-            self.heroes[hero_stat[1]] = Hero(hero_stat[1], hero_stat[0])
-            self.hero_lst.append(hero_stat[1])
-            heroes_file.write(f"{hero_stat[1]}, {hero_stat[0]}\n")
+            self.heroes[hero_info[1]] = Hero(hero_info[1], hero_info[0])
+            self.hero_lst.append(hero_info[1])
 
-        heroes_file.close()
-        self.hero_lst.grid(row=1, column=0)
+    # has no button
+    def refresh_heroes(self):
+        self.hero_lst.delete(0, END)
+        self.heroes = dict()
+        self.init_heroes()
+        self.clear_stats()
 
     def add_hero(self, team: Team, team_lst):
         hero: Hero = self.get_selected_hero()
@@ -194,9 +195,11 @@ class Window(Frame):
 
         self.stats_lst.grid(row=1, column=0)
 
-    def search(self, event):
-        if event.widget.winfo_class() != "Listbox":
-            return
+    def write_stats(self):
+        with open("heroes.dat", 'wb') as f:
+            pickle.dump(self.heroes, f, protocol=pickle.HIGHEST_PROTOCOL)
 
-        if event.char.isalpha() or event.char == ' ':
+    @staticmethod
+    def search(event):
+        if event.widget.winfo_class() == "Listbox" and (event.char.isalpha() or event.char == ' '):
             event.widget.search(event.char)
