@@ -102,3 +102,9 @@ ENV/
 
 # PyCharm
 .idea/
+
+# cached hero data
+heroes.dat
+
+# notes
+notes.txt
