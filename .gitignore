@@ -108,3 +108,6 @@ heroes.dat
 
 # notes
 notes.txt
+
+# threading test
+threading/
