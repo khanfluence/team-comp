@@ -10,10 +10,6 @@ class Team:
         if hero.name in self.heroes or len(self.heroes) == 5:
             return False
 
-        if hero.stats is None:
-            hero.fetch_stats()
-            # show fetch status message?
-
         self.heroes.append(hero.name)
         for hero_name, stat in hero.stats.items():
             self.stats[hero_name] = (self.stats[hero_name] + ((stat - self.stats[hero_name]) / len(self.heroes)))\
