@@ -59,8 +59,8 @@ class Window(Frame):
         self.show_team2_rb = Radiobutton(self.controls_lfrm, text="Dire", variable=self.show_rb_var, value="team2")
         self.show_hero_rb = Radiobutton(self.controls_lfrm, text="Hero", variable=self.show_rb_var, value="hero")
         self.show_stats_btn = Button(self.controls_lfrm, text="Show", command=self.show_stats)
-        self.reset_teams_btn = Button(self.controls_lfrm, text="Clear", command=self.reset_teams)
-        self.clear_stats_btn = Button(self.controls_lfrm, text="Wipe", command=self.clear_stats)
+        self.reset_teams_btn = Button(self.controls_lfrm, text="Clear", command=self.clear_teams)
+        self.clear_stats_btn = Button(self.controls_lfrm, text="Wipe", command=self.wipe_stats)
         self.init_controls()
 
     def init_hero_list(self):
@@ -123,15 +123,17 @@ class Window(Frame):
         self.reset_teams_btn.grid(row=1, column=1)
         self.clear_stats_btn.grid(row=1, column=2)
 
+        # team 1 selected by default
         self.show_team1_rb.invoke()
 
-    def reset_teams(self):
+    def clear_teams(self):
         self.team1.reset()
         self.team2.reset()
         self.team1_lst.delete(0, END)
         self.team2_lst.delete(0, END)
 
-    def clear_stats(self):
+    # wipe cached stats and fetch fresh stats for heroes on teams
+    def wipe_stats(self):
         for hero in self.heroes.values():
             hero.stats = dict()
 
@@ -140,19 +142,21 @@ class Window(Frame):
 
         self.stats_lst.delete(0, END)
 
+    # initialize hero dict and SearchListbox
     def init_heroes(self):
         page = requests.get("https://www.dotabuff.com/heroes", headers={"user-agent": "Mozilla/5.0"})
+        self.hero_lst.delete(0, END)
+        self.heroes = dict()
+
         for hero_info in re.findall(r'<a href="/heroes/(.+?)">.+?<div class="name">(.+?)</div>', re.search(
                 '<div class="hero-grid">[\s\S]+</div></footer></section>', page.text).group()):
             self.heroes[hero_info[1]] = Hero(hero_info[1], hero_info[0])
             self.hero_lst.append(hero_info[1])
 
-    # has no button
+    # unused, has no button; doable by deleting heroes.dat before run
     def refresh_heroes(self):
-        self.hero_lst.delete(0, END)
-        self.heroes = dict()
         self.init_heroes()
-        self.clear_stats()
+        self.wipe_stats()
 
     def add_hero(self, team: Team, team_lst):
         hero: Hero = self.get_selected_hero()
@@ -172,7 +176,7 @@ class Window(Frame):
         idx = self.hero_lst.curselection()
         hero: Hero = None
 
-        if bool(idx):
+        if bool(idx):   # or idx == 0?
             hero = self.heroes[self.hero_lst.get(idx)]
             if not hero.stats:
                 hero.fetch_stats()
@@ -195,6 +199,7 @@ class Window(Frame):
 
         self.stats_lst.grid(row=1, column=0)
 
+    # performed on window close
     def write_stats(self):
         with open("heroes.dat", 'wb') as f:
             pickle.dump(self.heroes, f, protocol=pickle.HIGHEST_PROTOCOL)
