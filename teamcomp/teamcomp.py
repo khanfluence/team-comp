@@ -1,5 +1,5 @@
+import tkinter
 from Window import Window
-from tkinter import *
 
 
 def close():
@@ -7,7 +7,7 @@ def close():
     root.destroy()
 
 
-root = Tk()
+root = tkinter.Tk()
 app = Window(root)
 root.protocol("WM_DELETE_WINDOW", close)
 root.mainloop()

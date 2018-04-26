@@ -1,7 +1,8 @@
-from tkinter import *
+import re
+import tkinter
 
 
-class SearchListbox(Listbox):
+class SearchListbox(tkinter.Listbox):
     def __init__(self, root=None, **kwargs):
         super().__init__(root, kwargs)
         self.root = root
@@ -17,13 +18,13 @@ class SearchListbox(Listbox):
         self.root.after(10, self.update_timer)
 
     def append(self, item):
-        super().insert(END, item)
+        super().insert(tkinter.END, item)
         self.items.append(re.split(r"[+-]", item)[0].strip())
 
     def delete(self, first, last=None):
         super().delete(first, last)
 
-        if last == END:
+        if last == tkinter.END:
             self.items.clear()
         else:
             del self.items[first]
@@ -40,5 +41,5 @@ class SearchListbox(Listbox):
 
         self.see(idx)
         self.activate(idx)
-        self.selection_clear(0, END)
+        self.selection_clear(0, tkinter.END)
         self.selection_set(idx)

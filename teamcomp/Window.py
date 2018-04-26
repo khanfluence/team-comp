@@ -1,14 +1,15 @@
 import os
 import pickle
+import re
 import requests
-from tkinter import *
-from tkinter.ttk import *
+import tkinter
+from tkinter import ttk
 from Hero import Hero
 from SearchListbox import SearchListbox
 from Team import Team
 
 
-class Window(Frame):
+class Window(ttk.Frame):
     def __init__(self, root=None):
         super().__init__(root)
         self.root = root
@@ -20,47 +21,48 @@ class Window(Frame):
 
         # hero list
         self.heroes = dict()
-        self.hero_frm = Frame(self, borderwidth=0)
+        self.hero_frm = ttk.Frame(self, borderwidth=0)
         self.hero_lst = SearchListbox(self.hero_frm, height=20)
-        self.hero_scl = Scrollbar(self.hero_frm)
+        self.hero_scl = ttk.Scrollbar(self.hero_frm)
         self.init_hero_list()
 
         # team lists
         self.team1 = Team()
         self.team2 = Team()
-        self.team_frm = Frame(self, borderwidth=0)
+        self.team_frm = ttk.Frame(self, borderwidth=0)
         self.team1_lst = SearchListbox(self.team_frm, height=5)
         self.team2_lst = SearchListbox(self.team_frm, height=5)
         self.init_team_lists()
 
         # add/remove buttons
-        self.add_rem_frm = Frame(self, borderwidth=0)
-        self.team1_add_btn = Button(self.add_rem_frm, text="-->", command=lambda: self.add_hero(self.team1,
-                                                                                                self.team1_lst))
-        self.team1_rem_btn = Button(self.add_rem_frm, text="<--", command=lambda: self.rem_hero(self.team1,
-                                                                                                self.team1_lst))
-        self.team2_add_btn = Button(self.add_rem_frm, text="-->", command=lambda: self.add_hero(self.team2,
-                                                                                                self.team2_lst))
-        self.team2_rem_btn = Button(self.add_rem_frm, text="<--", command=lambda: self.rem_hero(self.team2,
-                                                                                                self.team2_lst))
+        self.add_rem_frm = ttk.Frame(self, borderwidth=0)
+        self.team1_add_btn = ttk.Button(self.add_rem_frm, text="-->", command=lambda: self.add_hero(self.team1,
+                                                                                                    self.team1_lst))
+        self.team1_rem_btn = ttk.Button(self.add_rem_frm, text="<--", command=lambda: self.rem_hero(self.team1,
+                                                                                                    self.team1_lst))
+        self.team2_add_btn = ttk.Button(self.add_rem_frm, text="-->", command=lambda: self.add_hero(self.team2,
+                                                                                                    self.team2_lst))
+        self.team2_rem_btn = ttk.Button(self.add_rem_frm, text="<--", command=lambda: self.rem_hero(self.team2,
+                                                                                                    self.team2_lst))
         self.init_add_rem_buttons()
 
         # stats list
-        self.stats_frm = Frame(self, borderwidth=0)
-        self.stats_lbl = Label(self.stats_frm, text="Advantage")
+        self.stats_frm = ttk.Frame(self, borderwidth=0)
+        self.stats_lbl = ttk.Label(self.stats_frm, text="Counters")
         self.stats_lst = SearchListbox(self.stats_frm, height=20, width=26, font=("Consolas", "10"))
-        self.stats_scl = Scrollbar(self.stats_frm)
+        self.stats_scl = ttk.Scrollbar(self.stats_frm)
         self.init_stats_list()
 
         # controls
-        self.controls_lfrm = LabelFrame(self, text="Controls")
-        self.show_rb_var = StringVar()
-        self.show_team1_rb = Radiobutton(self.controls_lfrm, text="Radiant", variable=self.show_rb_var, value="team1")
-        self.show_team2_rb = Radiobutton(self.controls_lfrm, text="Dire", variable=self.show_rb_var, value="team2")
-        self.show_hero_rb = Radiobutton(self.controls_lfrm, text="Hero", variable=self.show_rb_var, value="hero")
-        self.show_stats_btn = Button(self.controls_lfrm, text="Show", command=self.show_stats)
-        self.reset_teams_btn = Button(self.controls_lfrm, text="Clear", command=self.clear_teams)
-        self.clear_stats_btn = Button(self.controls_lfrm, text="Wipe", command=self.wipe_stats)
+        self.controls_lfrm = ttk.LabelFrame(self, text="Controls")
+        self.show_rb_var = tkinter.StringVar()
+        self.show_team1_rb = ttk.Radiobutton(self.controls_lfrm, text="Radiant", variable=self.show_rb_var,
+                                             value="team1")
+        self.show_team2_rb = ttk.Radiobutton(self.controls_lfrm, text="Dire", variable=self.show_rb_var, value="team2")
+        self.show_hero_rb = ttk.Radiobutton(self.controls_lfrm, text="Hero", variable=self.show_rb_var, value="hero")
+        self.show_stats_btn = ttk.Button(self.controls_lfrm, text="Show", command=self.show_stats)
+        self.reset_teams_btn = ttk.Button(self.controls_lfrm, text="Clear", command=self.clear_teams)
+        self.clear_stats_btn = ttk.Button(self.controls_lfrm, text="Wipe", command=self.wipe_stats)
         self.init_controls()
 
     def init_hero_list(self):
@@ -75,18 +77,18 @@ class Window(Frame):
 
         self.hero_lst.config(yscrollcommand=self.hero_scl.set)
         self.hero_scl.config(command=self.hero_lst.yview)
-        hero_lbl = Label(self.hero_frm, text="Hero List")
+        hero_lbl = ttk.Label(self.hero_frm, text="Heroes")
 
-        self.hero_frm.grid(row=0, column=0, rowspan=2, sticky=NS)
+        self.hero_frm.grid(row=0, column=0, rowspan=2, sticky=tkinter.NS)
         self.hero_lst.grid(row=1, column=0)
-        self.hero_scl.grid(row=1, column=1, sticky=NS)
+        self.hero_scl.grid(row=1, column=1, sticky=tkinter.NS)
         hero_lbl.grid(row=0, column=0)
 
     def init_team_lists(self):
-        team1_lbl = Label(self.team_frm, text="Radiant")
-        team2_lbl = Label(self.team_frm, text="Dire")
+        team1_lbl = ttk.Label(self.team_frm, text="Radiant")
+        team2_lbl = ttk.Label(self.team_frm, text="Dire")
 
-        self.team_frm.grid(row=0, column=2, sticky=N)
+        self.team_frm.grid(row=0, column=2, sticky=tkinter.N)
         team1_lbl.grid(row=0, column=3)
         self.team1_lst.grid(row=1, column=3, rowspan=5)
 
@@ -95,7 +97,7 @@ class Window(Frame):
         self.team2_lst.grid(row=8, column=3, rowspan=5)
 
     def init_add_rem_buttons(self):
-        self.add_rem_frm.grid(row=0, column=1, sticky=N)
+        self.add_rem_frm.grid(row=0, column=1, sticky=tkinter.N)
         self.add_rem_frm.grid_rowconfigure(0, minsize=40)
         self.team1_add_btn.grid(row=1)
         self.team1_rem_btn.grid(row=2)
@@ -106,16 +108,16 @@ class Window(Frame):
         self.stats_lst.config(yscrollcommand=self.stats_scl.set)
         self.stats_scl.config(command=self.stats_lst.yview)
 
-        self.stats_frm.grid(row=0, column=3, rowspan=2, sticky=NS)
+        self.stats_frm.grid(row=0, column=3, rowspan=2, sticky=tkinter.NS)
         self.stats_lst.grid(row=1, column=0)
-        self.stats_scl.grid(row=1, column=1, sticky=NS)
+        self.stats_scl.grid(row=1, column=1, sticky=tkinter.NS)
         self.stats_lbl.grid(row=0, column=0)
 
     def init_controls(self):
         self.controls_lfrm.grid_columnconfigure(0, weight=1)
         self.controls_lfrm.grid_columnconfigure(1, weight=1)
         self.controls_lfrm.grid_columnconfigure(2, weight=1)
-        self.controls_lfrm.grid(row=1, column=1, columnspan=2, sticky=NSEW)
+        self.controls_lfrm.grid(row=1, column=1, columnspan=2, sticky=tkinter.NSEW)
         self.show_team1_rb.grid(row=0, column=0)
         self.show_team2_rb.grid(row=0, column=1)
         self.show_hero_rb.grid(row=0, column=2)
@@ -129,8 +131,8 @@ class Window(Frame):
     def clear_teams(self):
         self.team1.reset()
         self.team2.reset()
-        self.team1_lst.delete(0, END)
-        self.team2_lst.delete(0, END)
+        self.team1_lst.delete(0, tkinter.END)
+        self.team2_lst.delete(0, tkinter.END)
 
     # wipe cached stats and fetch fresh stats for heroes on teams
     def wipe_stats(self):
@@ -140,12 +142,12 @@ class Window(Frame):
         for hero_name in self.team1.heroes + self.team2.heroes:
             self.heroes[hero_name].fetch_stats()
 
-        self.stats_lst.delete(0, END)
+        self.stats_lst.delete(0, tkinter.END)
 
     # initialize hero dict and SearchListbox
     def init_heroes(self):
         page = requests.get("https://www.dotabuff.com/heroes", headers={"user-agent": "Mozilla/5.0"})
-        self.hero_lst.delete(0, END)
+        self.hero_lst.delete(0, tkinter.END)
         self.heroes = dict()
 
         for hero_info in re.findall(r'<a href="/heroes/(.+?)">.+?<div class="name">(.+?)</div>', re.search(
@@ -176,7 +178,7 @@ class Window(Frame):
         idx = self.hero_lst.curselection()
         hero: Hero = None
 
-        if bool(idx):   # or idx == 0?
+        if bool(idx):  # or idx == 0?
             hero = self.heroes[self.hero_lst.get(idx)]
             if not hero.stats:
                 hero.fetch_stats()
@@ -193,8 +195,8 @@ class Window(Frame):
             self.update_stats_list(eval(f"self.{self.show_rb_var.get()}").stats)
 
     def update_stats_list(self, stats: dict):
-        self.stats_lst.delete(0, END)
-        for hero, stat in sorted(stats.items(), key=lambda item: item[1]):
+        self.stats_lst.delete(0, tkinter.END)
+        for hero, stat in sorted(stats.items(), key=lambda item: item[1], reverse=True):
             self.stats_lst.append(f"{hero:20} {stat:+.2f}")
 
         self.stats_lst.grid(row=1, column=0)
