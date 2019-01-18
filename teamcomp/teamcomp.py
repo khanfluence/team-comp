@@ -9,5 +9,5 @@ def close():
 
 root = tkinter.Tk()
 app = Window(root)
-root.protocol("WM_DELETE_WINDOW", close)
+root.protocol('WM_DELETE_WINDOW', close)
 root.mainloop()
