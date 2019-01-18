@@ -17,7 +17,7 @@ class Team:
 
         return True
 
-    def rem_hero(self, hero: Hero):
+    def remove_hero(self, hero: Hero):
         self.heroes.remove(hero.name)
         for hero_name, stat in hero.stats.items():
             self.stats[hero_name] = (self.stats[hero_name] * (len(self.heroes) + 1) - stat) / max(len(self.heroes), 1)

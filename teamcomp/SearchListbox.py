@@ -1,3 +1,4 @@
+import bisect
 import re
 import tkinter
 
@@ -17,9 +18,18 @@ class SearchListbox(tkinter.Listbox):
 
         self.root.after(10, self.update_timer)
 
+    def add(self, item):
+        bisect.insort(self.items, item)
+        super().delete(0, tkinter.END)
+        super().insert(tkinter.END, *self.items)
+
     def append(self, item):
         super().insert(tkinter.END, item)
-        self.items.append(re.split(r"[+-]", item)[0].strip())
+        self.items.append(item)
+
+    def append_stat(self, item):
+        super().insert(tkinter.END, item)
+        self.items.append(re.split(r'[+-]', item)[0].strip())
 
     def delete(self, first, last=None):
         super().delete(first, last)
@@ -27,7 +37,7 @@ class SearchListbox(tkinter.Listbox):
         if last == tkinter.END:
             self.items.clear()
         else:
-            del self.items[first]
+            del self.items[first]  # assuming super handles multiple, handle it here, too?
 
     def search(self, char):
         if self.timer == 0:

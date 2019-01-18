@@ -160,44 +160,55 @@ class Window(ttk.Frame):
         self.init_heroes()
         self.wipe_stats()
 
+    # button action
     def add_hero(self, team: Team, team_lst):
-        hero: Hero = self.get_selected_hero()
+        idx = self.hero_lst.curselection()
+
+        hero: Hero = self.get_selected_hero(self.hero_lst)
 
         if hero is not None and team.add_hero(hero):
             team_lst.append(hero.name)
+            self.hero_lst.delete(idx[0])
 
-    def rem_hero(self, team, team_lst):
+    # button action
+    def remove_hero(self, team, team_lst):
         idx = team_lst.curselection()
         if not idx:
             return
 
-        team.rem_hero(self.heroes[team_lst.get(idx)])
+        team.remove_hero(self.heroes[team_lst.get(idx[0])])
+        self.hero_lst.add(team_lst.get(idx[0]))
         team_lst.delete(idx[0])
 
-    def get_selected_hero(self) -> Hero:
-        idx = self.hero_lst.curselection()
+    # get currently selected hero in hero list, fetching stats if necessary
+    def get_selected_hero(self, lst: SearchListbox) -> Hero:
+        idx = lst.curselection()
         hero: Hero = None
 
-        if bool(idx):  # or idx == 0?
-            hero = self.heroes[self.hero_lst.get(idx)]
+        if idx:
+            hero = self.heroes[lst.get(idx[0])]
             if not hero.stats:
                 hero.fetch_stats()
 
         return hero
 
+    # button action
     def show_stats(self):
-        if self.show_rb_var.get() == "hero":
-            hero: Hero = self.get_selected_hero()
-
-            if hero is not None:
-                self.update_stats_list(hero.stats)
+        if self.show_rb_var.get() == 'hero':
+            for lst in [self.hero_lst, self.team1_lst, self.team2_lst]:  # can select a hero from full list or teams
+                hero: Hero = self.get_selected_hero(lst)
+                if hero is not None:
+                    self.update_stats_listbox(hero)
+                    break
         else:
-            self.update_stats_list(eval(f"self.{self.show_rb_var.get()}").stats)
+            self.update_stats_listbox(eval(f'self.{self.show_rb_var.get()}'))
 
-    def update_stats_list(self, stats: dict):
+    def update_stats_listbox(self, hero_or_team):  # better way to handle hero or team?
         self.stats_lst.delete(0, tkinter.END)
-        for hero, stat in sorted(stats.items(), key=lambda item: item[1], reverse=True):
-            self.stats_lst.append(f"{hero:20} {stat:+.2f}")
+
+        for hero, stat in sorted(hero_or_team.stats.items(), key=lambda item: item[1], reverse=True):
+            if isinstance(hero_or_team, Hero) or hero not in hero_or_team.heroes:
+                self.stats_lst.append_stat(f'{hero:20} {stat:+.2f}')
 
         self.stats_lst.grid(row=1, column=0)
 
