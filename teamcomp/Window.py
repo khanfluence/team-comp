@@ -138,8 +138,8 @@ class Window(ttk.Frame):
         for hero in self.heroes.values():
             hero.stats = dict()
 
-        for hero_name in self.team1.heroes + self.team2.heroes:
-            self.heroes[hero_name].fetch_stats()
+        for hero in self.team1.heroes + self.team2.heroes:
+            self.heroes[hero.name].fetch_stats()
 
         self.stats_lst.delete(0, tkinter.END)
 
@@ -162,13 +162,10 @@ class Window(ttk.Frame):
 
     # button action
     def add_hero(self, team: Team, team_lst):
-        idx = self.hero_lst.curselection()
-
         hero: Hero = self.get_selected_hero(self.hero_lst)
 
         if hero is not None and team.add_hero(hero):
             team_lst.append(hero.name)
-            self.hero_lst.delete(idx[0])
 
     # button action
     def remove_hero(self, team, team_lst):
@@ -177,7 +174,6 @@ class Window(ttk.Frame):
             return
 
         team.remove_hero(self.heroes[team_lst.get(idx[0])])
-        self.hero_lst.add(team_lst.get(idx[0]))
         team_lst.delete(idx[0])
 
     # get currently selected hero in hero list, fetching stats if necessary

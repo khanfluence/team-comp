@@ -1,4 +1,3 @@
-import bisect
 import re
 import tkinter
 
@@ -17,11 +16,6 @@ class SearchListbox(tkinter.Listbox):
             self.timer -= 10
 
         self.root.after(10, self.update_timer)
-
-    def add(self, item):
-        bisect.insort(self.items, item)
-        super().delete(0, tkinter.END)
-        super().insert(tkinter.END, *self.items)
 
     def append(self, item):
         super().insert(tkinter.END, item)
